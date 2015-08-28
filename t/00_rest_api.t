@@ -11,6 +11,12 @@ require $FindBin::Bin .'/../rest_api.pl';
 my $t = Test::Mojo->new;
 
 #########################################################################################
+## GET / ################################################################################
+$t->get_ok('/')
+    ->status_is(200)
+    ->text_is('head > title' => 'Комментарии');
+
+#########################################################################################
 ## GET /articles/comment ################################################################
 {
     my $form_hashref = {article_id => 1};
@@ -98,38 +104,6 @@ my $t = Test::Mojo->new;
     $make_some_bad_decisions->(sub {
         my $hashref = shift;
         $hashref->{'parent_id'} = 'string';
-        return $hashref;
-    });
-}
-
-
-#########################################################################################
-## DELETE /articles/comment #############################################################
-{
-    my $form_hashref = {id => 100500};
-
-    $t->delete_ok('/articles/comment' => form => $form_hashref)
-        ->status_is(200)
-        ->json_is('/status' => 200);
-
-    my $make_some_bad_decisions = sub {
-        my $callback = shift;
-
-        my $bad_form_hashref = $callback->(dclone $form_hashref);
-
-        $t->delete_ok('/articles/comment' => form => $bad_form_hashref)
-            ->status_is(422)
-            ->json_is('/status' => 422)
-    };
-
-    $make_some_bad_decisions->(sub {
-        my $hashref = shift;
-        delete $hashref->{'id'};
-        return $hashref;
-    });
-    $make_some_bad_decisions->(sub {
-        my $hashref = shift;
-        $hashref->{'id'} = 'string';
         return $hashref;
     });
 }

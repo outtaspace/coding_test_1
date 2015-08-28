@@ -13,6 +13,8 @@ app->attr(dbh => sub {
     return DBI->connect(@{ $hashref->{'dbh'} });
 });
 
+get '/' => 'index';
+
 get '/articles/comment' => sub {
     my $self = shift;
 
@@ -89,21 +91,25 @@ post '/articles/comment' => sub {
     $self->render(json => {status => 200, comment_id => $comment_id});
 };
 
-del '/articles/comment' => sub {
-    my $self = shift;
-
-    {
-        my $validation = $self->validation;
-        $validation->required('id')->like(qr{^\d+$}x);
-
-        return $self->render(json => {status => 422}, status => 422)
-            if $validation->has_error;
-    }
-
-    $self->app->dbh->do(q{delete from comments where id=?}, undef, $self->param('id'));
-
-    $self->render(json => {status => 200});
-};
-
 app->start;
+
+__DATA__
+
+@@ index.html.ep
+% title 'Комментарии';
+% layout 'main';
+
+@@ layouts/main.html.ep
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title><%= title %></title>
+        <script src="js/jquery-2.1.4.min.js"></script>
+        <script src="js/main.js"></script>
+    </head>
+    <body>
+        <%= content %>
+    </body>
+</html>
 
