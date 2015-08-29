@@ -11,104 +11,25 @@ require $FindBin::Bin .'/../rest_api.pl';
 my $t = Test::Mojo->new;
 
 #########################################################################################
-## GET / ################################################################################
-$t->get_ok('/')
+## GET /article/:article_id/comments ####################################################
+$t->get_ok('/article/1/comments' => {'Accept' => 'text/html'})
     ->status_is(200)
-    ->text_is('head > title' => 'Комментарии');
+    ->text_is('head > title' => 'Comments');
+
+$t->get_ok('/article/1/comments' => {'Accept' => 'application/json'})
+    ->status_is(200)
+    ->json_is('/status' => 200)
+    ->json_is('/comments' => all_comments());
 
 #########################################################################################
-## GET /articles/comment ################################################################
-{
-    my $form_hashref = {article_id => 1};
-
-    $t->get_ok('/articles/comment' => form => $form_hashref)
-        ->status_is(200)
-        ->json_is('/status' => 200)
-        ->json_is('/comments' => all_comments());
-
-    my $make_some_bad_decisions = sub {
-        my $callback = shift;
-
-        my $bad_form_hashref = $callback->(dclone $form_hashref);
-
-        $t->get_ok('/articles/comment' => form => $bad_form_hashref)
-            ->status_is(422)
-            ->json_is('/status' => 422);
-    };
-
-    $make_some_bad_decisions->(sub {
-        my $hashref = shift;
-        delete $hashref->{'article_id'};
-        return $hashref;
-    });
-    $make_some_bad_decisions->(sub {
-        my $hashref = shift;
-        $hashref->{'article_id'} = 'string';
-        return $hashref;
-    });
-}
-
+## POST /article/:article_id/comments ###################################################
+$t->post_ok('/article/1/comments' => form => {user_id => 1, comment => 'Hello!'})
+    ->status_is(200)
+    ->json_is('/status' => 200)
+    ->json_like('/comment_id' => qr{^\d+$}x);
 
 #########################################################################################
-## POST /articles/comment ###############################################################
-{
-    my $form_hashref = {
-        article_id => 1,
-        user_id    => 1,
-        comment    => 'Hello!',
-    };
-
-    $t->post_ok('/articles/comment' => form => $form_hashref)
-        ->status_is(200)
-        ->json_is('/status' => 200)
-        ->json_like('/comment_id' => qr{^\d+$}x);
-
-    my $make_some_bad_decisions = sub {
-        my $callback = shift;
-
-        my $bad_form_hashref = $callback->(dclone $form_hashref);
-
-        $t->post_ok('/articles/comment' => form => $bad_form_hashref)
-            ->status_is(422)
-            ->json_is('/status' => 422);
-    };
-
-    $make_some_bad_decisions->(sub {
-        my $hashref = shift;
-        delete $hashref->{'article_id'};
-        return $hashref;
-    });
-    $make_some_bad_decisions->(sub {
-        my $hashref = shift;
-        $hashref->{'article_id'} = 'string';
-        return $hashref;
-    });
-
-    $make_some_bad_decisions->(sub {
-        my $hashref = shift;
-        delete $hashref->{'user_id'};
-        return $hashref;
-    });
-    $make_some_bad_decisions->(sub {
-        my $hashref = shift;
-        $hashref->{'user_id'} = 'string';
-        return $hashref;
-    });
-
-    $make_some_bad_decisions->(sub {
-        my $hashref = shift;
-        delete $hashref->{'comment'};
-        return $hashref;
-    });
-
-    $make_some_bad_decisions->(sub {
-        my $hashref = shift;
-        $hashref->{'parent_id'} = 'string';
-        return $hashref;
-    });
-}
-
-
+## done_testing #########################################################################
 done_testing();
 
 #########################################################################################

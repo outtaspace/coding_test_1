@@ -13,59 +13,43 @@ app->attr(dbh => sub {
     return DBI->connect(@{ $hashref->{'dbh'} });
 });
 
-get '/' => 'index';
-
-get '/articles/comment' => sub {
+get '/article/:article_id/comments' => sub {
     my $self = shift;
 
-    {
-        my $validation = $self->validation;
-        $validation->required('article_id')->like(qr{^\d+$}x);
+    $self->respond_to(
+        html => {template => 'index'},
+        json => sub {
+            my $sth = $self->app->dbh->prepare(q{
+                select
+                    id, parent_id, user_id, comment
+                from
+                    comments
+                where
+                    article_id = ?
+                order by
+                    parent_id, id
+            });
+            $sth->execute($self->param('article_id'));
 
-        return $self->render(json => {status => 422}, status => 422)
-            if $validation->has_error;
-    }
+            my %parent = (0 => []);
 
-    my $sth = $self->app->dbh->prepare(q{
-        select
-            id, parent_id, user_id, comment
-        from
-            comments
-        where
-            article_id = ?
-        order by
-            parent_id, id
-    });
-    $sth->execute($self->param('article_id'));
+            while (my $each_comment = $sth->fetchrow_hashref) {
+                my ($id, $parent_id) = map { $each_comment->{$_} } qw(id parent_id);
 
-    my %parent = (0 => []);
+                $each_comment->{'comments'} = [];
 
-    while (my $each_comment = $sth->fetchrow_hashref) {
-        my ($id, $parent_id) = map { $each_comment->{$_} } qw(id parent_id);
+                $parent{$id} = $each_comment->{'comments'};
 
-        $each_comment->{'comments'} = [];
+                push @{ $parent{$parent_id} }, $each_comment;
+            }
 
-        $parent{$id} = $each_comment->{'comments'};
+            $self->render(json => {status => 200, comments => $parent{0}});
+        },
+    );
+} => 'all_comments';
 
-        push @{ $parent{$parent_id} }, $each_comment;
-    }
-
-    $self->render(json => {status => 200, comments => $parent{0}});
-};
-
-post '/articles/comment' => sub {
+post '/article/:article_id/comments' => sub {
     my $self = shift;
-
-    {
-        my $validation = $self->validation;
-        $validation->optional('parent_id')->like(qr{^\d+$}x);
-        $validation->required('comment');
-        $validation->required('article_id')->like(qr{^\d+$}x);
-        $validation->required('user_id')->like(qr{^\d+$}x);
-
-        return $self->render(json => {status => 422}, status => 422)
-            if $validation->has_error;
-    }
 
     my ($comment_id) = do {
         my $parent_id = $self->param('parent_id') // 0;
@@ -73,31 +57,38 @@ post '/articles/comment' => sub {
 
         my $dbh = $self->app->dbh;
 
-        $dbh->begin_work();
+        $dbh->begin_work;
 
         $dbh->do(q{
-            insert into `comments` (`parent_id`, `comment`, `article_id`, `user_id`)
-            values (?, ?, ?, ?);
+            insert into comments (parent_id, `comment`, article_id, user_id)
+            values (?, ?, ?, ?)
         }, undef, $parent_id, $comment, map { $self->param($_) } qw(article_id user_id));
 
-        my $sth = $dbh->prepare(q{select last_insert_id();});
-        $sth->execute();
+        my $sth = $dbh->prepare(q{select last_insert_id()});
+        $sth->execute;
 
-        $dbh->commit();
+        $dbh->commit;
 
-        $sth->fetchrow_array();
+        $sth->fetchrow_array;
     };
 
     $self->render(json => {status => 200, comment_id => $comment_id});
-};
+} => 'create_a_new_comment';
 
 app->start;
 
 __DATA__
 
 @@ index.html.ep
-% title 'Комментарии';
+% title 'Comments';
 % layout 'main';
+%= javascript '/js/main.js'
+<p>бип</p>
+
+@@ validation_error.html.ep
+% title 'Bad request';
+% layout 'main';
+<p class="bg-danger">The given request did not pass validation.</p>
 
 @@ layouts/main.html.ep
 <!DOCTYPE html>
@@ -105,8 +96,10 @@ __DATA__
     <head>
         <meta charset="UTF-8">
         <title><%= title %></title>
-        <script src="js/jquery-2.1.4.min.js"></script>
-        <script src="js/main.js"></script>
+        <link rel="stylesheet" href="/css/bootstrap.min.css">
+        <link rel="stylesheet" href="/css/bootstrap-theme.min.css">
+        <script src="/js/jquery.min.js"></script>
+        <script src="/js/bootstrap.min.js"></script>
     </head>
     <body>
         <%= content %>
