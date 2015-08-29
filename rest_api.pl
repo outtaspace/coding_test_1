@@ -51,28 +51,32 @@ get '/article/:article_id/comments' => sub {
 post '/article/:article_id/comments' => sub {
     my $self = shift;
 
-    my ($comment_id) = do {
-        my $parent_id = $self->param('parent_id') // 0;
-        my $comment   = $self->param('comment')   // q{};
+    $self->respond_to(
+        json => sub {
+            my ($comment_id) = do {
+                my $parent_id = $self->param('parent_id') // 0;
+                my $comment   = $self->param('comment')   // q{};
 
-        my $dbh = $self->app->dbh;
+                my $dbh = $self->app->dbh;
 
-        $dbh->begin_work;
+                $dbh->begin_work;
 
-        $dbh->do(q{
-            insert into comments (parent_id, `comment`, article_id, user_id)
-            values (?, ?, ?, ?)
-        }, undef, $parent_id, $comment, map { $self->param($_) } qw(article_id user_id));
+                $dbh->do(q{
+                    insert into comments (parent_id, `comment`, article_id, user_id)
+                    values (?, ?, ?, ?)
+                }, undef, $parent_id, $comment, map { $self->param($_) } qw(article_id user_id));
 
-        my $sth = $dbh->prepare(q{select last_insert_id()});
-        $sth->execute;
+                my $sth = $dbh->prepare(q{select last_insert_id()});
+                $sth->execute;
 
-        $dbh->commit;
+                $dbh->commit;
 
-        $sth->fetchrow_array;
-    };
+                $sth->fetchrow_array;
+            };
 
-    $self->render(json => {status => 200, comment_id => $comment_id});
+            $self->render(json => {status => 200, comment_id => $comment_id});
+        },
+    );
 } => 'create_a_new_comment';
 
 app->start;
