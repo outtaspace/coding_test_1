@@ -16,6 +16,8 @@ app->attr(dbh => sub {
 get '/article/:article_id/comments' => sub {
     my $self = shift;
 
+    $self->stash(user_id => 1);
+
     $self->respond_to(
         html => {template => 'index'},
         json => sub {
@@ -87,6 +89,18 @@ __DATA__
 % title 'Comments';
 % layout 'main';
 %= javascript '/js/main.js'
+%= javascript begin
+$(document).ready(function() {
+    'use strict';
+
+    app.req.article_id                   = '<%= stash 'user_id' %>';
+    app.req.article_id                   = '<%= param 'article_id' %>';
+    app.req.url_for_all_comments         = '<%= url_for('all_comments') %>';
+    app.req.url_for_create_a_new_comment = '<%= url_for('create_a_new_comment') %>';
+
+    app.reload_comments();
+});
+%= end
 <p>бип</p>
 
 @@ validation_error.html.ep
