@@ -101,12 +101,18 @@ $(document).ready(function() {
     app.reload_comments();
 });
 %= end
-<p>бип</p>
-
-@@ validation_error.html.ep
-% title 'Bad request';
-% layout 'main';
-<p class="bg-danger">The given request did not pass validation.</p>
+<div class="panel panel-default">
+    <div class="panel-body">
+        <button type="button" class="btn btn-default" aria-label="Left Align">
+            <span class="glyphicon glyphicon-comment" aria-hidden="true"></span>
+            <span>Create a new comment</span>
+        </button>
+    </div>
+</div>
+<div class="panel panel-default">
+    <div class="panel-heading">Comments <span class="badge">42</span></div>
+    <div class="panel-body"></div>
+</div>
 
 @@ layouts/main.html.ep
 <!DOCTYPE html>
