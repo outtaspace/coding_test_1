@@ -88,28 +88,45 @@ __DATA__
 @@ index.html.ep
 % title 'Comments';
 % layout 'main';
-%= javascript '/js/main.js'
-%= javascript begin
+<script>
 $(document).ready(function() {
     'use strict';
 
-    app.req.article_id                   = '<%= stash 'user_id' %>';
+    app.req.user_id                      = '<%= stash 'user_id' %>';
     app.req.article_id                   = '<%= param 'article_id' %>';
     app.req.url_for_all_comments         = '<%= url_for('all_comments') %>';
     app.req.url_for_create_a_new_comment = '<%= url_for('create_a_new_comment') %>';
 
+    app.init_bindings();
     app.reload_comments();
 });
-%= end
-<div class="panel panel-default">
+</script>
+<div id="create_a_new_comment" class="panel panel-default">
     <div class="panel-body">
         <button type="button" class="btn btn-default" aria-label="Left Align">
             <span class="glyphicon glyphicon-comment" aria-hidden="true"></span>
             <span>Create a new comment</span>
         </button>
+        <form class="form-horizontal" hidden="true">
+            <div class="form-group">
+                <textarea class="form-control"></textarea>
+            </div>
+            <div class="form-group">
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-default" aria-label="Left Align">
+                        <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+                        <span>Submit</span>
+                    </button>
+                    <button type="button" class="btn btn-default" aria-label="Left Align">
+                        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                        <span>Cancel</span>
+                    </button>
+                </div>
+            </div>
+        </form>
     </div>
 </div>
-<div class="panel panel-default">
+<div id="all_comments" class="panel panel-default">
     <div class="panel-heading">Comments <span class="badge">42</span></div>
     <div class="panel-body"></div>
 </div>
@@ -124,6 +141,7 @@ $(document).ready(function() {
         <link rel="stylesheet" href="/css/bootstrap-theme.min.css">
         <script src="/js/jquery.min.js"></script>
         <script src="/js/bootstrap.min.js"></script>
+        <script src="/js/main.js"></script>
     </head>
     <body>
         <%= content %>
