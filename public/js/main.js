@@ -79,6 +79,10 @@ app.init_bindings = function() {
             var parent_id = $comment.data('parent-id');
             var comment   = $textarea.val();
 
+            if (! comment.length) {
+                return;
+            }
+
             _this
                 .api_post_new_comment(_this.req.user_id, id, comment)
                     .done(function(data) {
@@ -152,7 +156,31 @@ app.show_root_comment = function(comment_id, comment) {
 };
 
 app.show_comments = function(comments) {
-    //console.dir(comments);
+    var _this   = this;
+    var $panel  = $('#all_comments .panel-body');
+    var parents = {0: $panel};
+
+    walk(comments);
+
+    function walk(comments) {
+        $.each(comments, function(index, value) {
+            var $comment_body = $.tmpl('comment_body', {
+                id:        value.comment_id,
+                parent_id: value.parent_id,
+                comment:   value.comment
+            });
+
+            if (! parents.hasOwnProperty(value.id)) {
+                parents[value.id] = $comment_body.find('.comments');
+            }
+
+            $comment_body.appendTo(parents[value.parent_id]);
+
+            if (value.comments.length) {
+                walk(value.comments);
+            }
+        });
+    }
 };
 
 // AJAX
