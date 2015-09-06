@@ -17,10 +17,15 @@ app.req = {
 };
 
 app.init_bindings = function() {
-    var _this     = this;
-    var $panel    = $('#create_a_new_comment .panel-body');
-    var $form     = $panel.find('> form');
-    var $textarea = $form.find('textarea');
+    var _this         = this;
+    var $panel        = $('#create_a_new_comment .panel-body');
+    var $form         = $panel.find('> form');
+    var $textarea     = $form.find('textarea');
+    var $all_comments = $('#all_comments');
+
+    // compile the markup as a named template
+    $.template('comment_body', $('#tmpl_comment_body'));
+    $.template('comment_form', $('#tmpl_comment_form'));
 
     $panel
         .find('> button')
@@ -42,7 +47,8 @@ app.init_bindings = function() {
                     .done(function(data) {
                         $textarea.val('');
                         _this.hide_comment_form();
-                        alert('Успешно создан коммент');
+
+                        _this.show_root_comment(data.comment_id, comment);
                     });
         });
 
@@ -51,6 +57,54 @@ app.init_bindings = function() {
         .on('click', function() {
             $textarea.val('');
             _this.hide_comment_form();
+        });
+
+    $all_comments
+        .on('click', '.add_comment', function() {
+            $(this)
+                .hide()
+                .after($.tmpl('comment_form'));
+        });
+
+    $all_comments
+        .on('click', '.submit_comment', function() {
+            var $button = $(this);
+
+            var $comment    = $button.closest('.panel');
+            var $add_button = $($comment.find('.add_comment').get(0));
+            var $form       = $($comment.find('form').get(0));
+            var $textarea   = $($comment.find('textarea').get(0));
+
+            var id        = $comment.data('id');
+            var parent_id = $comment.data('parent-id');
+            var comment   = $textarea.val();
+
+            _this
+                .api_post_new_comment(_this.req.user_id, id, comment)
+                    .done(function(data) {
+                        var $comment_body = $.tmpl('comment_body', {
+                            id:        data.comment_id,
+                            parent_id: id,
+                            comment:   comment
+                        });
+
+                        $textarea.val('');
+                        $form.hide();
+                        $add_button.show();
+
+                        $($comment.find('.comments').get(0)).append($comment_body);
+                    });
+        });
+
+    $all_comments
+        .on('click', '.cancel_comment', function() {
+            $(this)
+                .closest('form')
+                    .hide()
+                    .end()
+                .closest('.btn-group')
+                    .find('.add_comment')
+                        .show();
         });
 };
 
@@ -75,11 +129,30 @@ app.hide_comment_form = function() {
 };
 
 app.reload_comments = function() {
-    this
+    var _this = this;
+
+    _this
         .api_get_all_comments()
             .done(function(data) {
-                alert('Комменты загружены успешно');
+                _this.show_comments(data.comments);
             });
+};
+
+app.show_root_comment = function(comment_id, comment) {
+    var user_id   = this.req.user_id;
+    var parent_id = this.req.default_parent_id;
+
+    var $comment_body = $.tmpl('comment_body', {
+        id:        comment_id,
+        parent_id: parent_id,
+        comment:   comment
+    });
+
+    $comment_body.appendTo($('#all_comments .panel-body'));
+};
+
+app.show_comments = function(comments) {
+    //console.dir(comments);
 };
 
 // AJAX

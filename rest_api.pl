@@ -101,9 +101,44 @@ $(document).ready(function() {
     app.reload_comments();
 });
 </script>
+<script type="text/template" id="tmpl_comment_body">
+<div class="media panel" data-id="${id}" data-parent-id="${parent_id}">
+    <div class="media-body">
+        <p class="comment_body">${comment}</p>
+        <div class="btn-group btn-group-xs" role="group">
+            <button type="button" class="btn btn-default add_comment" aria-label="Left Align">
+                <span class="glyphicon glyphicon-comment" aria-hidden="true"></span>
+                <span>Comment this</span>
+            </button>
+        </div>
+        <div class="comments"></div>
+    </div>
+</div>
+</script>
+<script type="text/template" id="tmpl_comment_form">
+<form class="form-horizontal">
+    <div class="form-group">
+        <div class="col-sm-10">
+            <textarea class="form-control"></textarea>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="btn-group-xs col-sm-10" role="group">
+            <button type="button" class="btn btn-default submit_comment" aria-label="Left Align">
+                <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+                <span>Submit</span>
+            </button>
+            <button type="button" class="btn btn-default cancel_comment" aria-label="Left Align">
+                <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                <span>Cancel</span>
+            </button>
+        </div>
+    </div>
+</form>
+</script>
 <div id="create_a_new_comment" class="panel panel-default">
     <div class="panel-body">
-        <button type="button" class="btn btn-default" aria-label="Left Align">
+        <button type="button" class="btn btn-default add_comment" aria-label="Left Align">
             <span class="glyphicon glyphicon-comment" aria-hidden="true"></span>
             <span>Create a new comment</span>
         </button>
@@ -113,11 +148,11 @@ $(document).ready(function() {
             </div>
             <div class="form-group">
                 <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-default" aria-label="Left Align">
+                    <button type="button" class="btn btn-default submit_comment" aria-label="Left Align">
                         <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
                         <span>Submit</span>
                     </button>
-                    <button type="button" class="btn btn-default" aria-label="Left Align">
+                    <button type="button" class="btn btn-default cancel_comment" aria-label="Left Align">
                         <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
                         <span>Cancel</span>
                     </button>
@@ -127,7 +162,7 @@ $(document).ready(function() {
     </div>
 </div>
 <div id="all_comments" class="panel panel-default">
-    <div class="panel-heading">Comments <span class="badge">42</span></div>
+    <div class="panel-heading">Comments</div>
     <div class="panel-body"></div>
 </div>
 
@@ -141,6 +176,7 @@ $(document).ready(function() {
         <link rel="stylesheet" href="/css/bootstrap-theme.min.css">
         <script src="/js/jquery.min.js"></script>
         <script src="/js/bootstrap.min.js"></script>
+        <script src="/js/jquery.tmpl.min.js"></script>
         <script src="/js/main.js"></script>
     </head>
     <body>
