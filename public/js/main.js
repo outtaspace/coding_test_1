@@ -3,7 +3,7 @@
 $.ajaxSetup({
     error: function() {
         alert('Ошибка. Не удалось получить данные с сервера');
-    },
+    }
 });
 
 var app = {};
