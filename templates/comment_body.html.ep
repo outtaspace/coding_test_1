@@ -1,0 +1,14 @@
+<script type="text/template" id="tmpl_comment_body">
+<div class="media panel" data-id="${id}" data-parent-id="${parent_id}">
+    <div class="media-body">
+        <p class="comment_body">${comment}</p>
+        <div class="btn-group btn-group-xs" role="group">
+            <button type="button" class="btn btn-default add_comment">
+                <span class="glyphicon glyphicon-comment"></span>
+                <span>Comment this</span>
+            </button>
+        </div>
+        <div class="comments"></div>
+    </div>
+</div>
+</script>
