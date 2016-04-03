@@ -23,9 +23,15 @@ app.init_bindings = function() {
     var $textarea     = $form.find('textarea');
     var $all_comments = $('#all_comments');
 
+    _.templateSettings = {
+        interpolate: /\{\{(.+?)\}\}/g
+    };
+
     // compile the markup as a named template
-    $.template('comment_body', $('#tmpl_comment_body'));
-    $.template('comment_form', $('#tmpl_comment_form'));
+    _this.template = {
+        comment_body: _.template($('#tmpl_comment_body').html()),
+        comment_form: _.template($('#tmpl_comment_form').html())
+    };
 
     $panel
         .find('> button')
@@ -63,7 +69,7 @@ app.init_bindings = function() {
         .on('click', '.add_comment', function() {
             $(this)
                 .hide()
-                .after($.tmpl('comment_form'));
+                .after($(_this.template.comment_form));
         });
 
     $all_comments
@@ -86,7 +92,7 @@ app.init_bindings = function() {
             _this
                 .api_post_new_comment(_this.req.user_id, id, comment)
                     .done(function(data) {
-                        var $comment_body = $.tmpl('comment_body', {
+                        var comment_body = _this.template.comment_body({
                             id:        data.comment_id,
                             parent_id: id,
                             comment:   comment
@@ -96,7 +102,7 @@ app.init_bindings = function() {
                         $form.hide();
                         $add_button.show();
 
-                        $($comment.find('.comments').get(0)).append($comment_body);
+                        $($comment.find('.comments').get(0)).append($(comment_body));
                     });
         });
 
@@ -146,13 +152,13 @@ app.show_root_comment = function(comment_id, comment) {
     var user_id   = this.req.user_id;
     var parent_id = this.req.default_parent_id;
 
-    var $comment_body = $.tmpl('comment_body', {
+    var comment_body = this.template.comment_body({
         id:        comment_id,
         parent_id: parent_id,
         comment:   comment
     });
 
-    $comment_body.appendTo($('#all_comments .panel-body'));
+    $(comment_body).appendTo($('#all_comments .panel-body'));
 };
 
 app.show_comments = function(comments) {
@@ -164,11 +170,13 @@ app.show_comments = function(comments) {
 
     function walk(comments) {
         $.each(comments, function(index, value) {
-            var $comment_body = $.tmpl('comment_body', {
+            var comment_body = _this.template.comment_body({
                 id:        value.comment_id,
                 parent_id: value.parent_id,
                 comment:   value.comment
             });
+
+            var $comment_body = $(comment_body);
 
             if (! parents.hasOwnProperty(value.id)) {
                 parents[value.id] = $comment_body.find('.comments');
@@ -202,4 +210,3 @@ app.api_post_new_comment = function(user_id, parent_id, comment) {
         dataType: 'json'
     });
 };
-

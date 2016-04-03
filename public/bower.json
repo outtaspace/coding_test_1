@@ -5,6 +5,6 @@
   "dependencies": {
     "jquery": "~2.1.4",
     "bootstrap": "~3.3.6",
-    "jquery-tmpl": "*"
+    "underscore": "~1.8.3"
   }
 }
