@@ -69,7 +69,7 @@ app.init_bindings = function() {
         .on('click', '.add_comment', function() {
             $(this)
                 .hide()
-                .after($(_this.template.comment_form));
+                .after($(_this.template.comment_form()));
         });
 
     $all_comments
