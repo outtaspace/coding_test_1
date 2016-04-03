@@ -1,11 +1,5 @@
 'use strict';
 
-$.ajaxSetup({
-    error: function() {
-        alert('Ошибка. Не удалось получить данные с сервера');
-    }
-});
-
 var app = {};
 
 app.req = {
@@ -22,6 +16,12 @@ app.init_bindings = function() {
     var $form         = $panel.find('> form');
     var $textarea     = $form.find('textarea');
     var $all_comments = $('#all_comments');
+
+    $.ajaxSetup({
+        error: function() {
+            alert('Ошибка. Не удалось получить данные с сервера');
+        }
+    });
 
     _.templateSettings = {
         interpolate: /\{\{(.+?)\}\}/g
@@ -81,11 +81,10 @@ app.init_bindings = function() {
             var $form       = $($comment.find('form').get(0));
             var $textarea   = $($comment.find('textarea').get(0));
 
-            var id        = $comment.data('id');
-            var parent_id = $comment.data('parent-id');
-            var comment   = $textarea.val();
+            var id      = $comment.data('id');
+            var comment = $textarea.val();
 
-            if (! comment.length) {
+            if (!comment.length) {
                 return;
             }
 
@@ -149,7 +148,6 @@ app.reload_comments = function() {
 };
 
 app.show_root_comment = function(comment_id, comment) {
-    var user_id   = this.req.user_id;
     var parent_id = this.req.default_parent_id;
 
     var comment_body = this.template.comment_body({
